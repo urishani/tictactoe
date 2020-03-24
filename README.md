@@ -1,4 +1,4 @@
-#Tic Tac Toe with MinMax
+# Tic Tac Toe with MinMax
 
 A game with AI minmax algorithm to play for win.
 
