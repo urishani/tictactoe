@@ -2,7 +2,7 @@
 
 A game with AI minmax algorithm to play for win.
 
-Noode JS application.
+Node JS application. [https://nodejs.org/en/download/]
 
 * Install node
 * import the project
