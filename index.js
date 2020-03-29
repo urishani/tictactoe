@@ -138,7 +138,7 @@ async function simulate() {
     let eb = '';
     while ((eb = evaluateBoard()) === ' ') {
         if (player === iAmPlayer) {
-            var move;
+            var move = undefined;
             while (!move) {
                 var m = await io.ask('Your move [i, j]: ');
                 m = m.indexOf(',') >= 0 ? m.split(',') : m.split(' ');
@@ -148,6 +148,7 @@ async function simulate() {
                     console.log('bad i and j. Try again.');
                     continue;
                 }
+                // console.log('m: ', m);
                 if (isFree(m.i, m.j))
                     move = m;
                 else console.log('bad move. Try again...');
@@ -160,6 +161,7 @@ async function simulate() {
         }
         console.log(bd2String());
         player = player === iAmPlayer  ? otherPlayer : iAmPlayer;
+        console.log('next player ' + player);
     }
     console.log('final result: [' + eb + ']');
     await simulate();
