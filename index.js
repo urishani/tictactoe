@@ -129,6 +129,11 @@ function findRandomEmptyCell() {
 
 
 //AI Code ------------------------------------------------------------------
+const recorder = {}; //require('./recorder_O');
+let counter = 0, counter2 = [0,0,0,0,0];
+// runRealAiHelper('O', 0, '');
+// console.log('counter ', counter, 'counter2 ', counter2);
+
 const io = require('console-read-write');
 
 async function simulate() {
@@ -136,6 +141,7 @@ async function simulate() {
     boardReset();
     var player = humanStart ? iAmPlayer : otherPlayer;
     let eb = '';
+    let trace = '';
     while ((eb = evaluateBoard()) === ' ') {
         if (player === iAmPlayer) {
             var move = undefined;
@@ -154,10 +160,14 @@ async function simulate() {
                 else console.log('bad move. Try again...');
             }
             setTile(move.i, move.j, player);
+            trace += move.i*3 + move.j;
         } else {
-            var result = runRealAiHelper(player, 0, []);
-            console.log('result ', result);
+            counter = 0; counter2 = [0,0,0,0,0];
+            var result = runRealAiHelper(player, 0, trace);
+            console.log('counter ', counter, 'counter2 ', counter2);
+            // console.log('result ', result);
             setTile(result.cell.i, result.cell.j, player);
+            trace += result.cell.i*3 + result.cell.j;
         }
         console.log(bd2String());
         player = player === iAmPlayer  ? otherPlayer : iAmPlayer;
@@ -240,9 +250,6 @@ function runRealAi() {
     // console.log('result ', cell.i, cell.j);
     // console.log("RealAi ran");
 }
-
-const recorder = require('./recorder_O');
-// runRealAiHelper('O', 0, '');
 // const fs = require('fs');
 // console.log(Object.keys(recorder).length);
 // fs.writeFileSync('recorder_O.json', JSON.stringify(recorder));
@@ -260,7 +267,8 @@ function findBestChoices(piece, level, trace, placeList) {
         // 5b.   var v = evaluateBoard(); //v = 1 if comp. wins, 0 if there's a tie.
         // 5b1. if (!myTurn && otherPlayerIsAi) v = 1 if computer wins; 0 if there's a tie.
         // 5b2. if (myTurn && otherPlayerIsAi) v = 0 if tie, -1 if computer loses
-        if (recorder[trace]) {
+        if (recorder[trace] !== undefined) {
+            counter2[trace.length-1]++;
             score = recorder[trace] * (iAmPlayer === 'O' ? -1 : 1);
         } else {
             var v = evaluateBoard(); //v = 1 if comp. wins, 0 if there's a tie.
@@ -305,6 +313,7 @@ function findBestChoices(piece, level, trace, placeList) {
 }
 
 function runRealAiHelper( piece, level, trace){
+    counter++;
     var isComputer = piece === otherPlayer;
     // console.log('trace: ', trace); // "AiHelper "+ piece +" "+ level, 'isComputer ? ', isComputer, boardData);
 
