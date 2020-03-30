@@ -241,6 +241,69 @@ function runRealAi() {
     // console.log("RealAi ran");
 }
 
+const recorder = require('./recorder_O');
+// runRealAiHelper('O', 0, '');
+// const fs = require('fs');
+// console.log(Object.keys(recorder).length);
+// fs.writeFileSync('recorder_O.json', JSON.stringify(recorder));
+// recorder = undefined;
+
+function findBestChoices(piece, level, trace, placeList) {
+    var isComputer = piece === otherPlayer;
+    var bestScore;
+    var bestChoices = [];
+    for(var n = 0; n < placeList.length; n++) {
+        var cell = placeList[n];
+        // 5a.   place your piece on the n-th position pair.
+        setTile(cell.i, cell.j, piece);
+        trace += (cell.i*3+cell.j);
+        // 5b.   var v = evaluateBoard(); //v = 1 if comp. wins, 0 if there's a tie.
+        // 5b1. if (!myTurn && otherPlayerIsAi) v = 1 if computer wins; 0 if there's a tie.
+        // 5b2. if (myTurn && otherPlayerIsAi) v = 0 if tie, -1 if computer loses
+        if (recorder[trace]) {
+            score = recorder[trace] * (iAmPlayer === 'O' ? -1 : 1);
+        } else {
+            var v = evaluateBoard(); //v = 1 if comp. wins, 0 if there's a tie.
+            var computerWins = v === otherPlayer;
+            var computerLoose = v === iAmPlayer;
+            // console.log("v")
+            if (computerWins) {
+                score = 10 - level;
+            } //console.log(bd2String(), score);}
+            else if (computerLoose) {
+                score = level - 10;
+            } // console.log(bd2String(), score);}
+            else score = 0;
+            // 5c.   if we win, return 1; if tie && state < 0 {bestN = n, state = 0}
+            // 5d.   call this function recursively, with the opposite piece and our level as parameters. obtain the result.
+            if (placeList.length > 1 && score === 0) {
+                var r = runRealAiHelper(piece === "X" ? "O" : "X", level + 1, trace);
+                score = r.v;
+            }
+        }
+        cell.score = score;
+        // if (recorder !== undefined && trace.length < 4)
+        //     recorder[trace] = score;
+        if (isComputer) {
+            if ((bestScore === undefined) || (score > bestScore)) {
+                bestScore = score;
+
+                bestChoices = [n]; // start new list of choices.
+            } else if ((score === bestScore)
+                && isComputer)
+                bestChoices.push(n);
+        } else if (bestScore === undefined || score < bestScore) {
+            bestScore = score;
+            bestChoices = [n];
+        }
+        // 5f.   remove the piece from 5a.
+        // console.log(piece, score, bestScore);
+        tileReset(cell.i,cell.j);
+        trace = trace.slice(0,-1);
+    }
+    return bestChoices;
+}
+
 function runRealAiHelper( piece, level, trace){
     var isComputer = piece === otherPlayer;
     // console.log('trace: ', trace); // "AiHelper "+ piece +" "+ level, 'isComputer ? ', isComputer, boardData);
@@ -256,52 +319,11 @@ function runRealAiHelper( piece, level, trace){
         }
     }
     // 4. let state = -1; let bestN =-1;
-    var bestScore;
     // 5. Run over that list: each time we look at the n-th pair.
-    var sureWin = false;
-    var bestChoices = [];
-    for(var n = 0; n < placeList.length; n++) {
-        var cell = placeList[n];
-        // 5a.   place your piece on the n-th position pair.
-        setTile(cell.i, cell.j, piece);
-        trace.push(cell.i*3+cell.j);
-        // 5b.   var v = evaluateBoard(); //v = 1 if comp. wins, 0 if there's a tie.
-        // 5b1. if (!myTurn && otherPlayerIsAi) v = 1 if computer wins; 0 if there's a tie.
-        // 5b2. if (myTurn && otherPlayerIsAi) v = 0 if tie, -1 if computer loses
-        var v = evaluateBoard(); //v = 1 if comp. wins, 0 if there's a tie.
-        var computerWins = v === otherPlayer;
-        var computerLoose = v === iAmPlayer;
-        // console.log("v")
-        if (computerWins) {score = 10-level; } //console.log(bd2String(), score);}
-        else if(computerLoose) {score = level-10;} // console.log(bd2String(), score);}
-        else score = 0;
-        // 5c.   if we win, return 1; if tie && state < 0 {bestN = n, state = 0}
-        // 5d.   call this function recursively, with the opposite piece and our level as parameters. obtain the result.
-        if (placeList.length > 1 && score === 0) {
-            var r = runRealAiHelper(piece === "X" ? "O" : "X", level + 1, trace);
-            score = r.v;
-        }
-        cell.score = score;
-        if (isComputer) {
-            if ((bestScore === undefined) || (score > bestScore)) {
-                bestScore = score;
-
-                    bestChoices = [n]; // start new list of choices.
-            } else if ((score === bestScore)
-                && isComputer)
-                bestChoices.push(n);
-        } else if (bestScore === undefined || score < bestScore)
-           bestScore = score;
-        // 5f.   remove the piece from 5a.
-        // console.log(piece, score, bestScore);
-        tileReset(cell.i,cell.j);
-        trace.pop();
-    }
+    var bestChoices = findBestChoices(piece, level, trace, placeList);
+    var bestScore = placeList[bestChoices[0]].score;
     // 6.  if we are the first call, then position piece in bestN;
     // 7. else return state;
-    if (level === 1) {
-        // console.log('exiting top level', bestScore, bestChoices, '\n', placeList, '\n', bd2String());
-    }
     var result = {v: bestScore, t:placeList, p:piece, bc: bestChoices};
     if (isComputer) { // select cell to place part in random.
         var choice = Math.round(Math.random()*(bestChoices.length-1));
