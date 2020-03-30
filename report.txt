@@ -1,0 +1,27 @@
+Case 1: using pre-recorded scores for the top 3 moves (2 computer moves if computer starts, 1 computer move if human starts).
+We can see that counter, which counts how many times the min-max function was called recursively, and counter2 how many times the pre-recorded scores where examined (we have one counter for first, second, third moves (4th and 5th are not used):
+
+In this case, for the first two moves, only one call, while using the pre-recorded scores less than 10 times.
+For the 3rd move, almost 90 times recursion search, than only 8, than the last one - only once, 
+
+So with pre-recorded scores, we call the min-max only 99 times.
+
+counter  1 counter2  [ 9, 0, 0, 0, 0 ]
+counter  1 counter2  [ 0, 0, 7, 0, 0 ]
+counter  88 counter2  [ 0, 0, 0, 0, 0 ]
+counter  8 counter2  [ 0, 0, 0, 0, 0 ]
+counter  1 counter2  [ 0, 0, 0, 0, 0 ]
+
+Case 2: as it was before - no use of pre-recorded scores:
+so for the first move, it is almost 300k times. Than in the third move it drops to almost 4K, than it is as in case 1.
+Usually, the first move is too much for the tiny fitbit processor... :(.
+
+C:\Users\User\Google Drive\workspace\js\fitbit>node index.js
+counter  294778 counter2  [ 0, 0, 0, 0, 0 ]
+counter  3864 counter2  [ 0, 0, 0, 0, 0 ]
+counter  90 counter2  [ 0, 0, 0, 0, 0 ]
+counter  6 counter2  [ 0, 0, 0, 0, 0 ]
+
+In total, the pre-recorded scores for the top 3 moves is only 585. A bit more than 9*8*7. Can you tell why?
+
+
