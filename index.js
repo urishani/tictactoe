@@ -131,8 +131,10 @@ function findRandomEmptyCell() {
 //AI Code ------------------------------------------------------------------
 const recorder = {}; //require('./recorder_O');
 let counter = 0, counter2 = [0,0,0,0,0];
-// runRealAiHelper('O', 0, '');
-// console.log('counter ', counter, 'counter2 ', counter2);
+runRealAiHelper('O', 0, '');
+console.log('counter ', counter, 'counter2 ', counter2);
+console.log(Object.keys(recorder).length);
+console.log(JSON.stringify(recorder));
 
 const io = require('console-read-write');
 
@@ -254,7 +256,28 @@ function runRealAi() {
 // console.log(Object.keys(recorder).length);
 // fs.writeFileSync('recorder_O.json', JSON.stringify(recorder));
 // recorder = undefined;
-
+function normalizedTrace(trace) {
+    var oTrace = trace;
+    // var changed = false;
+    if (trace.length <= 2) return trace;
+    if (trace.length > 2) {
+        if (trace[0] > trace[2]) {
+            // changed = true;
+            trace = trace[2] + trace[1] + trace[0] + trace.slice(3);
+        }
+    }
+    if (trace.length > 3) {
+        if (trace[1] > trace[3]) {
+            // changed = true;
+            trace = trace[0] + trace[3] + trace[2] + trace[1] + trace.slice(4);
+        }
+    }
+    // if (changed) {
+    //     console.log('oTrace', oTrace);
+    //     console.log(' --> nTrace', trace);
+    // }
+    return trace;
+}
 function findBestChoices(piece, level, trace, placeList) {
     var isComputer = piece === otherPlayer;
     var bestScore;
@@ -267,9 +290,10 @@ function findBestChoices(piece, level, trace, placeList) {
         // 5b.   var v = evaluateBoard(); //v = 1 if comp. wins, 0 if there's a tie.
         // 5b1. if (!myTurn && otherPlayerIsAi) v = 1 if computer wins; 0 if there's a tie.
         // 5b2. if (myTurn && otherPlayerIsAi) v = 0 if tie, -1 if computer loses
-        if (recorder[trace] !== undefined) {
+        let nTrace = normalizedTrace(trace);
+        if (recorder[nTrace] !== undefined) {
             counter2[trace.length-1]++;
-            score = recorder[trace] * (iAmPlayer === 'O' ? -1 : 1);
+            score = recorder[nTrace] * (iAmPlayer === 'O' ? -1 : 1);
         } else {
             var v = evaluateBoard(); //v = 1 if comp. wins, 0 if there's a tie.
             var computerWins = v === otherPlayer;
@@ -290,8 +314,8 @@ function findBestChoices(piece, level, trace, placeList) {
             }
         }
         cell.score = score;
-        // if (recorder !== undefined && trace.length < 4)
-        //     recorder[trace] = score;
+        if (recorder !== undefined && trace.length < 5)
+            recorder[nTrace] = score;
         if (isComputer) {
             if ((bestScore === undefined) || (score > bestScore)) {
                 bestScore = score;
